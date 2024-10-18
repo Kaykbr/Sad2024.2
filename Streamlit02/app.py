@@ -16,16 +16,36 @@ if uploaded_file is not None:
         st.error("Erro ao ler o arquivo CSV.")
     else:
         st.success("Arquivo CSV carregado com sucesso!")
-        
-        # Mostrar uma prévia dos dados carregados
-        st.subheader("Prévia dos dados (primeiras 10 linhas):")
-        st.write(df.head(10))
 
-        # Definir as colunas necessárias
+        # Sidebar para filtros dinâmicos
+        st.sidebar.header("Filtros")
+
+        # Filtro de Unidade Eleitoral
+        unidade_eleitoral = st.sidebar.selectbox(
+            "Escolha a Unidade Eleitoral",
+            options=df['SG_UE'].unique(),
+            help="Selecione a unidade eleitoral para filtrar os dados"
+        )
+
+        # Filtro de Cargo
+        cargo = st.sidebar.selectbox(
+            "Escolha o Cargo",
+            options=df['DS_CARGO'].unique(),
+            help="Selecione o cargo para filtrar os dados"
+        )
+
+        # Filtrar o dataframe com base nos filtros selecionados
+        df_filtrado = df[(df['SG_UE'] == unidade_eleitoral) & (df['DS_CARGO'] == cargo)]
+        
+        # Mostrar uma prévia dos dados filtrados
+        st.subheader(f"Prévia dos dados filtrados (Unidade Eleitoral: {unidade_eleitoral}, Cargo: {cargo})")
+        st.write(df_filtrado.head(10))
+
+        # Definir as colunas necessárias para os gráficos
         colunas_necessarias = ['DS_GRAU_INSTRUCAO', 'DS_GENERO', 'DS_COR_RACA', 'SG_PARTIDO']
         
         # Verificar se as colunas necessárias estão presentes no arquivo
-        colunas_existentes = [col for col in colunas_necessarias if col in df.columns]
+        colunas_existentes = [col for col in colunas_necessarias if col in df_filtrado.columns]
         
         if len(colunas_existentes) < len(colunas_necessarias):
             st.error(f"As seguintes colunas estão faltando no arquivo CSV: {', '.join(colunas_necessarias)}")
