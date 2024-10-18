@@ -52,32 +52,33 @@ if uploaded_file is not None:
                                           color='DS_GENERO', 
                                           barmode='group', 
                                           title='Relação entre Gênero e Grau de Instrução',
-                                          labels={'DS_GENERO':'Gênero', 'Contagem':'Número de Candidatos'})
+                                          labels={'DS_GENERO':'Gênero', 'Contagem':'Número de Candidatos'},
+                                          color_continuous_scale=px.colors.sequential.Blues)  # Cor gradual azul
             st.plotly_chart(fig_genero_instrucao)
 
-            # Gráfico de Distribuição de Cor/Raça
+            # Gráfico de Distribuição de Cor/Raça (Gráfico de Pizza)
             st.subheader("Distribuição de Cor/Raça")
             cor_raca_counts = df['DS_COR_RACA'].value_counts().reset_index()
             cor_raca_counts.columns = ['Cor/Raça', 'Contagem']
-            fig_cor_raca = px.bar(cor_raca_counts, 
-                                  x='Cor/Raça', 
-                                  y='Contagem', 
+            fig_cor_raca = px.pie(cor_raca_counts, 
+                                  names='Cor/Raça', 
+                                  values='Contagem', 
                                   title='Distribuição de Cor/Raça', 
-                                  labels={'Contagem':'Número de Candidatos', 'Cor/Raça':'Cor/Raça'})
+                                  color_discrete_sequence=px.colors.sequential.Aggrnyl)
             st.plotly_chart(fig_cor_raca)
 
-            # Gráfico de Distribuição por Gênero
+            # Gráfico de Distribuição por Gênero (Gráfico de Pizza)
             st.subheader("Distribuição por Gênero")
             genero_counts = df['DS_GENERO'].value_counts().reset_index()
             genero_counts.columns = ['Gênero', 'Contagem']
-            fig_genero = px.bar(genero_counts, 
-                                x='Gênero', 
-                                y='Contagem', 
+            fig_genero = px.pie(genero_counts, 
+                                names='Gênero', 
+                                values='Contagem', 
                                 title='Distribuição por Gênero', 
-                                labels={'Contagem':'Número de Candidatos', 'Gênero':'Gênero'})
+                                color_discrete_sequence=px.colors.sequential.Plasma)
             st.plotly_chart(fig_genero)
 
-            # Gráfico da Quantidade de Candidatas Mulheres por Partido
+            # Gráfico da Quantidade de Candidatas Mulheres por Partido (Cor Específica)
             st.subheader("Quantidade de Candidatas Mulheres por Partido")
             mulheres_por_partido = df[df['DS_GENERO'] == 'FEMININO']['SG_PARTIDO'].value_counts().reset_index()
             mulheres_por_partido.columns = ['Partido', 'Contagem']
@@ -85,7 +86,8 @@ if uploaded_file is not None:
                                           x='Partido', 
                                           y='Contagem', 
                                           title='Quantidade de Candidatas Mulheres por Partido',
-                                          labels={'Contagem':'Número de Candidatas', 'Partido':'Partido'})
+                                          labels={'Contagem':'Número de Candidatas', 'Partido':'Partido'},
+                                          color_discrete_sequence=['#1f77b4'])  # Cor azul específica
             st.plotly_chart(fig_mulheres_partido)
 
             # Gráfico da Quantidade de Candidatos Homens por Partido
@@ -103,13 +105,24 @@ if uploaded_file is not None:
             st.subheader("Proporção de Candidatos Masculinos e Femininos por Partido")
             proporcao_genero_partido = pd.crosstab(df['SG_PARTIDO'], df['DS_GENERO'], normalize='index').reset_index()
             proporcao_genero_partido_melted = proporcao_genero_partido.melt(id_vars='SG_PARTIDO', var_name='Gênero', value_name='Proporção')
-            fig_proporcao_genero = px.bar(proporcao_genero_partido_melted, 
+            
+            # Contagem de candidatos por partido
+            total_candidatos_por_partido = df['SG_PARTIDO'].value_counts().reset_index()
+            total_candidatos_por_partido.columns = ['SG_PARTIDO', 'Total_Candidatos']
+
+            # Mesclar com o total de candidatos
+            proporcao_com_total = pd.merge(proporcao_genero_partido_melted, total_candidatos_por_partido, on='SG_PARTIDO')
+
+            fig_proporcao_genero = px.bar(proporcao_com_total, 
                                           x='SG_PARTIDO', 
                                           y='Proporção', 
                                           color='Gênero', 
+                                          hover_data=['Total_Candidatos'],  # Mostrar total de candidatos ao passar o mouse
                                           barmode='group', 
                                           title='Proporção de Candidatos Masculinos e Femininos por Partido',
-                                          labels={'SG_PARTIDO':'Partido', 'Proporção':'Proporção (%)'})
+                                          labels={'SG_PARTIDO':'Partido', 'Proporção':'Proporção (%)'},
+                                          color_discrete_sequence=px.colors.sequential.Viridis)  # Cor gradual verde
             st.plotly_chart(fig_proporcao_genero)
+
 else:
     st.info("Por favor, faça o upload de um arquivo CSV.")
